@@ -9,20 +9,25 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables from .env file
+# Load environment variables from .env file (for local dev)
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-development-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'False') == 'True' # Defaults to False for production
 
-ALLOWED_HOSTS = ['*']
+# Allow Render and Vercel to access the API
+ALLOWED_HOSTS = ['*'] # For initial setup. In production, restrict to your actual domains.
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'https://*.vercel.app',
+]
 
 # Application definition
 INSTALLED_APPS = [
-    'daphne', # Must be before django.contrib.staticfiles for Channels
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -71,8 +76,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 ASGI_APPLICATION = 'core.asgi.application'
 
 # Database
-# Using SQLite for local development to ensure quick setup.
-# Will migrate to PostgreSQL for production.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -101,9 +104,11 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS Configuration
+# Allows Vercel and local Next.js to communicate with the backend
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://*.vercel.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
