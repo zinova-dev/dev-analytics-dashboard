@@ -38,7 +38,6 @@ export default function Home() {
         wsRef.current.close();
       }
 
-      // Use environment variable for WebSocket URL with fallback
       const wsBaseUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://127.0.0.1:8000/ws';
       const wsUrl = `${wsBaseUrl}/github/${profile.username}/`;
       const ws = new WebSocket(wsUrl);
@@ -159,21 +158,36 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-3 divide-x divide-slate-800 bg-slate-900/40 mt-auto">
-                <div className="p-4 flex flex-col items-center group hover:bg-slate-800/50 transition-colors">
+                <a 
+                  href={`https://github.com/${profile.username}?tab=repositories`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="p-4 flex flex-col items-center group hover:bg-slate-800/50 transition-colors cursor-pointer"
+                >
                   <GitBranch className="w-5 h-5 text-slate-500 mb-1 group-hover:text-blue-400 transition-colors" />
-                  <span className="text-xl font-bold text-white">{profile.public_repos}</span>
+                  <span className="text-xl font-bold text-white group-hover:underline">{profile.public_repos}</span>
                   <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Repos</span>
-                </div>
-                <div className="p-4 flex flex-col items-center group hover:bg-slate-800/50 transition-colors">
+                </a>
+                <a 
+                  href={`https://github.com/${profile.username}?tab=followers`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="p-4 flex flex-col items-center group hover:bg-slate-800/50 transition-colors cursor-pointer"
+                >
                   <Users className="w-5 h-5 text-slate-500 mb-1 group-hover:text-blue-400 transition-colors" />
-                  <span className="text-xl font-bold text-white">{profile.followers}</span>
+                  <span className="text-xl font-bold text-white group-hover:underline">{profile.followers}</span>
                   <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Followers</span>
-                </div>
-                <div className="p-4 flex flex-col items-center group hover:bg-slate-800/50 transition-colors">
+                </a>
+                <a 
+                  href={`https://github.com/${profile.username}?tab=following`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="p-4 flex flex-col items-center group hover:bg-slate-800/50 transition-colors cursor-pointer"
+                >
                   <Users className="w-5 h-5 text-slate-500 mb-1 group-hover:text-blue-400 transition-colors" />
-                  <span className="text-xl font-bold text-white">{profile.following}</span>
+                  <span className="text-xl font-bold text-white group-hover:underline">{profile.following}</span>
                   <span className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Following</span>
-                </div>
+                </a>
               </div>
 
               <div className="p-3 bg-black/40 border-t border-slate-800 font-mono text-[10px] flex items-center justify-center gap-2">
