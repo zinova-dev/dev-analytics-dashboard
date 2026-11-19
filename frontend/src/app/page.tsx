@@ -28,6 +28,7 @@ export default function Home() {
   const [languages, setLanguages] = useState<LanguageData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isWakingUp, setIsWakingUp] = useState(false);
   const [wsMessage, setWsMessage] = useState<string>('');
   
   const wsRef = useRef<WebSocket | null>(null);
@@ -77,26 +78,48 @@ export default function Home() {
 
     setLoading(true);
     setError('');
+    setIsWakingUp(false);
     setProfile(null);
     setLanguages([]);
     setWsMessage('');
 
-    try {
-      const [profileRes, languagesRes] = await Promise.all([
-        api.get(`/github/${username}/`),
-        api.get(`/github/${username}/languages/`)
-      ]);
-      
-      if (profileRes.data.error) {
-        setError(profileRes.data.error);
-      } else {
+    let attempt = 0;
+    const maxAttempts = 3;
+
+    while (attempt < maxAttempts) {
+      try {
+        const [profileRes, languagesRes] = await Promise.all([
+          api.get(`/github/${username}/`),
+          api.get(`/github/${username}/languages/`)
+        ]);
+        
+        if (profileRes.data.error) {
+          setError(profileRes.data.error);
+          setLoading(false);
+          return;
+        }
+
         setProfile(profileRes.data);
         setLanguages(languagesRes.data);
+        setLoading(false);
+        return;
+
+      } catch (err: any) {
+        attempt++;
+        
+        // If it's a network error (backend asleep), retry after 5 seconds
+        if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {
+          if (attempt < maxAttempts) {
+            setIsWakingUp(true);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            continue;
+          }
+        }
+        
+        setError(err.response?.data?.error || 'Failed to fetch GitHub profile. The server may be waking up, please try again in a moment.');
+        setLoading(false);
+        return;
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to fetch GitHub profile. Check network or rate limits.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -134,6 +157,13 @@ export default function Home() {
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Analyze'}
           </button>
         </form>
+
+        {isWakingUp && (
+          <div className="bg-blue-500/10 text-blue-400 p-4 rounded-xl flex items-center gap-3 mb-8 border border-blue-500/20 max-w-2xl mx-auto">
+            <Loader2 className="w-6 h-6 shrink-0 animate-spin" />
+            <span className="text-sm font-medium">Server is waking up from sleep. Please wait, this may take up to 60 seconds...</span>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-500/10 text-red-400 p-4 rounded-xl flex items-center gap-3 mb-8 border border-red-500/20 max-w-2xl mx-auto">
